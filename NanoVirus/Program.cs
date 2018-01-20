@@ -10,7 +10,6 @@ namespace NanoVirus
 
             //Init variables
             List<Cell> HumanCells = new List<Cell>();
-            CellType cellType = CellType.RedBloodCell;
             Cell theVirus = null;
 
             int theVirusIndex = 0;
@@ -35,13 +34,14 @@ namespace NanoVirus
             //Generate list of cells
             for (int index = 0; index < Constants.NumberOfCells; index++)
             {
-
                 //Get random co-ordiante values
                 int x = r.Next(Constants.MinCellValue, Constants.MaxCellValue);
                 int y = r.Next(Constants.MinCellValue, Constants.MaxCellValue);
                 int z = r.Next(Constants.MinCellValue, Constants.MaxCellValue);
 
                 //Get random cell type
+                CellType cellType = CellType.WhiteBloodCell;
+
                 for (int j = 0; j < elements.Count; j++)
                 {
                     cumulative += elements[j].Value;
@@ -62,9 +62,8 @@ namespace NanoVirus
                                 break;
                         }
                     }
+                    HumanCells.Add(new Cell(x, y, z, cellType));
                 }
-
-                HumanCells.Add(new Cell(x, y, z, cellType));
             }
 
             //Get random first red cell
@@ -76,7 +75,7 @@ namespace NanoVirus
                 {
                     theVirus = HumanCells.ToArray()[first];
                     theVirusIndex = first;
-                    Console.WriteLine("Red index is:" + theVirusIndex);
+                    Console.WriteLine("First random red index is: " + theVirusIndex);
                     notRed = false;
                 }
 
@@ -85,9 +84,11 @@ namespace NanoVirus
             //Cycle though
             do
             {
+                //Every 5th cycle
                 if (++CycleCount % Constants.InfectCycleNumber == Constants.Zero)
                 {
-                    Console.WriteLine("Kill: " + CycleCount);
+                    //TODO: Code the spread logic
+                    Console.WriteLine("Kill cycle: " + CycleCount);
 
                     if (CycleCount == 60)
                     {
@@ -96,26 +97,13 @@ namespace NanoVirus
 
                 }
 
+                Console.Write("Cycle number: "+CycleCount + "  ");
+
                 if (theVirus.Type == CellType.Tumorous)
                 {
-                    Console.WriteLine("Remove: " + theVirusIndex);
+                    Console.WriteLine("Removing tumorous at: " + theVirusIndex);
                     HumanCells.RemoveAt(theVirusIndex);
-
-                    int nextCell = r.Next(Constants.MinCellValue, HumanCells.Count);
-                    Cell theNextCell = HumanCells.ToArray()[nextCell];
-                    double distance = CalculateDistance(theVirus, theNextCell);
-
-                    if (distance < Constants.MaxCellValue)
-                    {
-                        theVirus = theNextCell;
-                        theVirusIndex = nextCell;
-                        Console.WriteLine("Virus index is:" + theVirusIndex);
-                    }
-                    else
-                    {
-                        Console.WriteLine("No move: " + distance);
-                    }
-
+                    theVirus.Type = CellType.RedBloodCell;
                 }
                 else
                 {
@@ -127,7 +115,7 @@ namespace NanoVirus
                     {
                         theVirus = theNextCell;
                         theVirusIndex = nextCell;
-                        Console.WriteLine("Virus index is:" + theVirusIndex);
+                        Console.WriteLine("Virus index is: " + theVirusIndex + " - " + theVirus.Type.ToString());
                     }
                     else
                     {
