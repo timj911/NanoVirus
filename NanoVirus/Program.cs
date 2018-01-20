@@ -10,12 +10,17 @@ namespace NanoVirus
 
             //Init variables
             List<Cell> HumanCells = new List<Cell>();
-            bool isActive = true;
-            bool notRed = true;
+            CellType cellType = CellType.RedBloodCell;
             Cell theVirus = null;
+
             int theVirusIndex = 0;
             int CycleCount = 0;
+
             Random r = new Random();
+
+            bool isActive = true;
+            bool notRed = true;
+
             double diceRoll = r.NextDouble();
             double cumulative = 0.0;
 
@@ -37,15 +42,12 @@ namespace NanoVirus
                 int z = r.Next(Constants.MinCellValue, Constants.MaxCellValue);
 
                 //Get random cell type
-                CellType cellType = CellType.RedBloodCell;
-
                 for (int j = 0; j < elements.Count; j++)
                 {
                     cumulative += elements[j].Value;
                     if (diceRoll < cumulative)
                     {
                         string selectedElement = elements[j].Key;
-                        Console.WriteLine(selectedElement);
 
                         switch (selectedElement)
                         {
