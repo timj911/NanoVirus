@@ -16,9 +16,5 @@ namespace NanoVirus
             this.Type = Type;
         }
 
-        public void Move()
-        {
-
-        }
     }
 }
