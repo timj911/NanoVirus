@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Collections.Generic;
 
 namespace NanoVirus
@@ -20,16 +21,16 @@ namespace NanoVirus
             bool isActive = true;
             bool notRed = true;
 
-            double diceRoll = r.NextDouble();
-            double cumulative = 0.0;
+            string date = DateTime.Now.ToString();
 
-            //Random cell type list
-            List<KeyValuePair<string, double>> elements = new List<KeyValuePair<string, double>>
+            date = date.Replace(":","-");
+
+            if (!Directory.Exists("C:\\NanoVirusLog"))
             {
-                new KeyValuePair<string, double>("T", Constants.TumorousCellProbability),
-                new KeyValuePair<string, double>("W", Constants.WhiteBloodCellProbability),
-                new KeyValuePair<string, double>("R", Constants.RedBloodCellProbability)
-            };
+                Directory.CreateDirectory("C:\\NanoVirusLog");
+            }
+          
+            string fileName = "C:\\NanoVirusLog\\" + date + ".txt";
 
             //Generate list of cells
             for (int index = 0; index < Constants.NumberOfCells; index++)
@@ -40,30 +41,9 @@ namespace NanoVirus
                 int z = r.Next(Constants.MinCellValue, Constants.MaxCellValue);
 
                 //Get random cell type
-                CellType cellType = CellType.WhiteBloodCell;
+                CellType cellType = GetCellType();
+                HumanCells.Add(new Cell(x, y, z, cellType));
 
-                for (int j = 0; j < elements.Count; j++)
-                {
-                    cumulative += elements[j].Value;
-                    if (diceRoll < cumulative)
-                    {
-                        string selectedElement = elements[j].Key;
-
-                        switch (selectedElement)
-                        {
-                            case "T":
-                                cellType = CellType.Tumorous;
-                                break;
-                            case "W":
-                                cellType = CellType.WhiteBloodCell;
-                                break;
-                            case "R":
-                                cellType = CellType.RedBloodCell;
-                                break;
-                        }
-                    }
-                    HumanCells.Add(new Cell(x, y, z, cellType));
-                }
             }
 
             //Get random first red cell
@@ -75,7 +55,8 @@ namespace NanoVirus
                 {
                     theVirus = HumanCells.ToArray()[first];
                     theVirusIndex = first;
-                    Console.WriteLine("First random red index is: " + theVirusIndex);
+                    string data = "First random red index is: " + theVirusIndex;
+                    PrintOutToFile(fileName,data);
                     notRed = false;
                 }
 
@@ -84,24 +65,45 @@ namespace NanoVirus
             //Cycle though
             do
             {
-                //Every 5th cycle
+
                 if (++CycleCount % Constants.InfectCycleNumber == Constants.Zero)
                 {
-                    //TODO: Code the spread logic
-                    Console.WriteLine("Kill cycle: " + CycleCount);
 
-                    if (CycleCount == 60)
+                    List<int> cancer = new List<int>();
+                    List<int> angryCells = new List<int>();
+
+                    for (int i = 0; i < HumanCells.Count; i++)
                     {
+                        if (HumanCells.ToArray()[i].Type == CellType.Tumorous)
+                            cancer.Add(i);
+
+                        if (HumanCells.ToArray()[i].Type == CellType.RedBloodCell)
+                            angryCells.Add(i);
+                    }
+
+                    if (cancer.Count == Constants.Zero)
+                    {
+                        string endGame = "End of game, no more tumorous cells";
+                        PrintOutToFile(fileName, endGame);
+                        break;
+                    }
+
+                    if (angryCells.Count == 100)
+                    {
+                        string endGame = "End of game, red blood cell count = 100";
+                        PrintOutToFile(fileName, endGame);
                         break;
                     }
 
                 }
 
-                Console.Write("Cycle number: "+CycleCount + "  ");
+                string cycledata =  "Cycle number: " + CycleCount;
+                PrintOutToFile(fileName, cycledata);
 
                 if (theVirus.Type == CellType.Tumorous)
                 {
-                    Console.WriteLine("Removing tumorous at: " + theVirusIndex);
+                    string removingInfo = "Removing tumorous at: " + theVirusIndex;
+                    PrintOutToFile(fileName, removingInfo);
                     HumanCells.RemoveAt(theVirusIndex);
                     theVirus.Type = CellType.RedBloodCell;
                 }
@@ -115,17 +117,20 @@ namespace NanoVirus
                     {
                         theVirus = theNextCell;
                         theVirusIndex = nextCell;
-                        Console.WriteLine("Virus index is: " + theVirusIndex + " - " + theVirus.Type.ToString());
+                        string moveInfo = "Virus index is: " + theVirusIndex + " - " + theVirus.Type.ToString();
+                        PrintOutToFile(fileName, moveInfo);
                     }
                     else
                     {
-                        Console.WriteLine("No move: " + distance);
+                        string noMoveData = "No move, distance too far";
+                        PrintOutToFile(fileName, noMoveData);
                     }
                 }
 
             } while (isActive);
 
-            Console.ReadLine();
+            Console.WriteLine("Output file in directory C:\\NanoVirusLog, press enter to close the program");
+            Console.Read();
         }
         //End Program
 
@@ -139,6 +144,50 @@ namespace NanoVirus
         public static void InfectCell(Cell cell)
         {
             cell.Type = CellType.Tumorous;
+            Console.WriteLine("infected");
+        }
+
+        public static CellType GetCellType()
+        {
+            Random r = new Random();
+            double diceRoll = r.NextDouble();
+            double cumulative = 0.0;
+
+            //Random cell type list
+            List<KeyValuePair<string, double>> elements = new List<KeyValuePair<string, double>>
+            {
+                new KeyValuePair<string, double>("T", Constants.TumorousCellProbability),
+                new KeyValuePair<string, double>("W", Constants.WhiteBloodCellProbability),
+                new KeyValuePair<string, double>("R", Constants.RedBloodCellProbability)
+            };
+
+            for (int j = 0; j < elements.Count; j++)
+            {
+                cumulative += elements[j].Value;
+                if (diceRoll < cumulative)
+                {
+                    string selectedElement = elements[j].Key;
+
+                    switch (selectedElement)
+                    {
+                        case "T":
+                            return CellType.Tumorous;
+                        case "W":
+                            return CellType.WhiteBloodCell;
+                        case "R":
+                            return CellType.RedBloodCell;
+                    }
+                }
+            }
+            return CellType.Tumorous;
+        }
+
+        public static void PrintOutToFile(string fileName, string data)
+        {
+            using (StreamWriter writer =  new StreamWriter(fileName, true))
+            {
+                writer.WriteLine(data);
+            }
         }
 
     }
