@@ -2,6 +2,7 @@
 {
     public enum CellType
     {
+        None,
         Tumorous,
         RedBloodCell,
         WhiteBloodCell
